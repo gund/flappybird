@@ -1,0 +1,7 @@
+name: flappybird
+version: 2.3.1
+author: Alex Malkevich
+description: Web version of flappybird.
+homepage: http://preview.16mb.com/flappy_bird/
+dependencies:
+  browser: any
