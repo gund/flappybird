@@ -1,0 +1,1 @@
+{"isEntrypoint":false,"deps":[],"parts":["flappybird|web/browser.dart","flappybird|web/browser_version.dart"],"conditionalDeps":[],"sdkDeps":["html","math"],"hasMain":false}
