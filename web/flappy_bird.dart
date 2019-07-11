@@ -2,16 +2,13 @@ library flappy_bird;
 
 import 'dart:html';
 import 'dart:math';
-import 'dart:async';
-import 'dart:web_audio';
 import 'browser_detect.dart';
-
-part 'audio.dart';
+import 'audio.dart';
 
 // Constants
 const double G = 0.012;
 const double G2 = G * 10;
-const double groundHeight = 1/5;
+const double groundHeight = 1 / 5;
 const double birdMaxSpeed = 700.0;
 const int birdR = 10;
 const int birdRX = 34;
@@ -20,12 +17,12 @@ const int birdSwipeHeight = 60;
 const int pipeWidth = 52;
 const int pipeHeight = 110;
 const double pipeDistance = pipeWidth * 3.0;
-const double pipeSpeed = G * 250;//3.5;
+const double pipeSpeed = G * 250; //3.5;
 const int pipeGap = 50;
 const int garbagePipesCount = 10; // Garbage every 10 pipes
-const double garbageFreq = pipeSpeed * 275   * garbagePipesCount;
+const double garbageFreq = pipeSpeed * 275 * garbagePipesCount;
 const int timeAfterLoose = 500;
-const double backgroundSpeed = pipeSpeed/2;
+const double backgroundSpeed = pipeSpeed / 2;
 
 // Window
 int w, h;
@@ -51,7 +48,7 @@ bool levelChanged = false;
 // Animation
 double lastPhisicTime = .0;
 double lastTime = .0;
-double currTime = .0;
+num currTime = .0;
 double garbageLastTime = .0;
 double backgroundAnim = .0;
 double groundAnim = .0;
@@ -63,7 +60,7 @@ String pipeTexture;
 String birdTexture;
 List<int> backgroundColor = new List<int>();
 double splashValue = 1.0;
-List<int> splashInfo = [0, 0, 0, 0.02];
+List<num> splashInfo = [0, 0, 0, 0.02];
 bool splashReset = false, resetToHigh = false;
 /**
  * (byte) gameState - State of game
@@ -83,8 +80,8 @@ const int FULL_STATE = STARTED | READY | LOOSE;
 int setGameState(int state) => gameState |= state;
 int unSetGameState(int state) => gameState &= ~state;
 // Bird
-double birdPosition = w*1/4;
-double birdHeight = h*1/3;
+double birdPosition = w * 1 / 4;
+double birdHeight = h * 1 / 3;
 bool isFall = true, birdBack = false;
 double lastBirdHeight = .0;
 double birdAnimTime = .0;
@@ -99,7 +96,7 @@ void main() {
   initAudio();
 }
 
-void tick(double time) {
+void tick(num time) {
   currTime = time;
   window.requestAnimationFrame(tick);
   phisicTick();
@@ -121,7 +118,7 @@ void redrawScene() {
   ctx.clearRect(0, 0, w, h);
   drawBackground();
   renderPipes();
-  drawEarth(h*groundHeight);
+  drawEarth(h * groundHeight);
   drawBird(birdPosition, birdHeight, birdR);
   drawScore();
   drawSplash();
@@ -137,7 +134,7 @@ void birdPhisic(double time) {
   double now = time;
   double delta = now - lastTime;
   if (delta > 450) delta *= 2;
-  delta = delta*.5;
+  delta = delta * .5;
   if (delta > birdMaxSpeed) delta = birdMaxSpeed;
   if (isFall) {
     birdHeight = birdHeight + G * delta;
@@ -150,7 +147,7 @@ void birdPhisic(double time) {
 
 void correctBird() {
   // Touch Sky
-  if (birdHeight + birdRX < -birdRX*2) {
+  if (birdHeight + birdRX < -birdRX * 2) {
     birdHeight = -birdRX.toDouble();
     isFall = true;
     lastTime = currTime;
@@ -161,7 +158,7 @@ void correctBird() {
     gameLoose();
   }
   // Fly Up
-  if (!isFall && (lastBirdHeight-birdSwipeHeight > birdHeight)) {
+  if (!isFall && (lastBirdHeight - birdSwipeHeight > birdHeight)) {
     isFall = true;
     lastTime = currTime;
   }
@@ -172,14 +169,18 @@ void checkScoreAndCollision() {
   double nearEdge, farEdge;
   double topEdge = birdHeight - birdR;
   double bottomEdge = birdHeight + birdR;
-  double birdPosPlusR = birdPosition+birdR;
-  double birdPosMinR = birdPosition-birdR;
+  double birdPosPlusR = birdPosition + birdR;
+  double birdPosMinR = birdPosition - birdR;
   for (int i = 0; i < pipes.length; ++i) {
     // Check Collision
-    nearEdge = pipes.elementAt(i)['center'] - pipeWidth/2;
-    farEdge = pipes.elementAt(i)['center'] + pipeWidth/2;
-    vertCollision = (pipes.elementAt(i)['top'] > topEdge || pipes.elementAt(i)['top']+pipeHeight < bottomEdge);
-    if (!collisioned && nearEdge < birdPosPlusR && farEdge > birdPosMinR && vertCollision) {
+    nearEdge = pipes.elementAt(i)['center'] - pipeWidth / 2;
+    farEdge = pipes.elementAt(i)['center'] + pipeWidth / 2;
+    vertCollision = (pipes.elementAt(i)['top'] > topEdge ||
+        pipes.elementAt(i)['top'] + pipeHeight < bottomEdge);
+    if (!collisioned &&
+        nearEdge < birdPosPlusR &&
+        farEdge > birdPosMinR &&
+        vertCollision) {
       gameLoose();
       collisioned = true;
     }
@@ -213,7 +214,7 @@ void garbageRegenPipes(double time) {
         --i;
       }
     }
-    double max = h - h*groundHeight - pipeHeight - pipeGap;
+    double max = h - h * groundHeight - pipeHeight - pipeGap;
     int i;
     // Generate new pipes
     for (i = 0; i < deletedPipesCount; ++i) {
@@ -277,9 +278,11 @@ void drawFps(int fps) {
 
 void drawBackground() {
   ctx.beginPath();
-  ctx.setFillColorRgb(backgroundColor[0], backgroundColor[1], backgroundColor[2]);
+  ctx.setFillColorRgb(
+      backgroundColor[0], backgroundColor[1], backgroundColor[2]);
   ctx.fillRect(0, 0, w, h);
-  ctx.drawImage(textures[backgroundTexture], backgroundAnim, h-h*groundHeight-402);
+  ctx.drawImage(
+      textures[backgroundTexture], backgroundAnim, h - h * groundHeight - 402);
   ctx.closePath();
 }
 
@@ -288,31 +291,32 @@ void drawBird(double x, double y, [int R = 10]) {
   ctx.beginPath();
   ctx.translate(x, y);
   ctx.rotate(radians(birdAnimAngle));
-  ctx.drawImage(textures['$birdTexture$birdAnimState'], -birdRX/2, -birdRY/2);
+  ctx.drawImage(
+      textures['$birdTexture$birdAnimState'], -birdRX / 2, -birdRY / 2);
   ctx.translate(-x, -y);
   ctx.closePath();
   ctx.restore();
 }
 
 void drawPipe(double center, int top, int height, [int width = 40]) {
-  double left = center - width/2;
+  double left = center - width / 2;
   ctx.beginPath();
   ctx.fillStyle = "#00ff00";
   // Top pipe
-  ctx.drawImage(textures['${pipeTexture}Top'], left, top-320);
-  if (top-320 > 0) {
-    ctx.drawImage(textures['${pipeTexture}Filler'], left, top-180-h);
+  ctx.drawImage(textures['${pipeTexture}Top'], left, top - 320);
+  if (top - 320 > 0) {
+    ctx.drawImage(textures['${pipeTexture}Filler'], left, top - 180 - h);
   }
   // Bottom pipe
-  ctx.drawImage(textures['${pipeTexture}Bottom'], left, top+height);
-  if (top+height+320 < h-h*groundHeight) {
-    ctx.drawImage(textures['${pipeTexture}Filler'], left, top+height+320);
+  ctx.drawImage(textures['${pipeTexture}Bottom'], left, top + height);
+  if (top + height + 320 < h - h * groundHeight) {
+    ctx.drawImage(textures['${pipeTexture}Filler'], left, top + height + 320);
   }
   ctx.closePath();
 }
 
 void drawEarth([double height = 125.0]) {
-  double hy = h-height;
+  double hy = h - height;
   ctx.beginPath();
   ctx.fillStyle = "#ded895";
   ctx.fillRect(0, hy, w, height);
@@ -322,64 +326,71 @@ void drawEarth([double height = 125.0]) {
 
 void renderPipes() {
   for (int i = 0; i < pipes.length; ++i) {
-    if (pipes.elementAt(i)['center']+pipeWidth > 0 && pipes.elementAt(i)['center']-pipeWidth < w)
-      drawPipe(pipes.elementAt(i)['center'], pipes.elementAt(i)['top'], pipeHeight, pipeWidth);
-    if (pipes.elementAt(i)['center']-pipeWidth > w) break;
+    if (pipes.elementAt(i)['center'] + pipeWidth > 0 &&
+        pipes.elementAt(i)['center'] - pipeWidth < w)
+      drawPipe(pipes.elementAt(i)['center'], pipes.elementAt(i)['top'],
+          pipeHeight, pipeWidth);
+    if (pipes.elementAt(i)['center'] - pipeWidth > w) break;
   }
 }
 
 void drawScore() {
-  double x = w/2, y = h*1/6;
+  double x = w / 2, y = h * 1 / 6;
   ctx.beginPath();
   ctx.font = "60px Arial";
   ctx.fillStyle = "#000000";
-  ctx.fillText(gameScore.toString(), x+2, y+2);
-  ctx.fillText(gameScore.toString(), x-2, y-2);
-  ctx.fillText(gameScore.toString(), x+2, y-2);
-  ctx.fillText(gameScore.toString(), x-2, y+2);
+  ctx.fillText(gameScore.toString(), x + 2, y + 2);
+  ctx.fillText(gameScore.toString(), x - 2, y - 2);
+  ctx.fillText(gameScore.toString(), x + 2, y - 2);
+  ctx.fillText(gameScore.toString(), x - 2, y + 2);
   ctx.fillStyle = "#ffffff";
   ctx.fillText(gameScore.toString(), x, y);
   ctx.closePath();
 }
 
 void drawPopup() {
-  double x = w/2, y = h/2, offsetX = 400.0, offsetY = 200.0;
+  double x = w / 2, y = h / 2, offsetX = 400.0, offsetY = 200.0;
   ctx.beginPath();
   ctx.fillStyle = "#ffffff";
-  ctx.fillRect(x-offsetX/2, y-offsetY/2, offsetX, offsetY);
+  ctx.fillRect(x - offsetX / 2, y - offsetY / 2, offsetX, offsetY);
   ctx.fillStyle = "#000000";
   ctx.font = "60px Arial";
   if (!loose) {
-    ctx.fillText(popupMsg, x - offsetX/2+2*popupMsg.length, y-20);
+    ctx.fillText(popupMsg, x - offsetX / 2 + 2 * popupMsg.length, y - 20);
     String say2 = "Space or Click to fly!";
     ctx.font = "30px Arial";
-    ctx.fillText(say2, x - offsetX/2+2*say2.length+25, y+40);
+    ctx.fillText(say2, x - offsetX / 2 + 2 * say2.length + 25, y + 40);
     ctx.font = "20px Arial";
-    ctx.fillText("Change dufficulty: [0-4]", x - offsetX/2+5*say2.length, y+80);
+    ctx.fillText(
+        "Change dufficulty: [0-4]", x - offsetX / 2 + 5 * say2.length, y + 80);
   } else {
-    ctx.fillText("Score: $gameScore", x - offsetX/2+100-7*gameScore.toString().length-1, y-40);
+    ctx.fillText("Score: $gameScore",
+        x - offsetX / 2 + 100 - 7 * gameScore.toString().length - 1, y - 40);
     ctx.font = "40px Arial";
-    ctx.fillText("Difficulty: $popupMsg", x - offsetX/2+110, y+30);
+    ctx.fillText("Difficulty: $popupMsg", x - offsetX / 2 + 110, y + 30);
     String say2 = "Space or Click to start again!";
     ctx.font = "30px Arial";
-    ctx.fillText(say2, x - offsetX/2+10, y+80);
+    ctx.fillText(say2, x - offsetX / 2 + 10, y + 80);
   }
-  ctx.strokeRect(x-offsetX/2, y-offsetY/2, offsetX, offsetY);
+  ctx.strokeRect(x - offsetX / 2, y - offsetY / 2, offsetX, offsetY);
   ctx.closePath();
 }
 
 void drawSplash() {
   if (splashValue > .0 || splashReset) {
-    ctx.setFillColorRgb(splashInfo[0], splashInfo[1], splashInfo[2], splashValue);
+    ctx.setFillColorRgb(
+        splashInfo[0], splashInfo[1], splashInfo[2], splashValue);
     ctx.fillRect(0, 0, w, h);
     if (resetToHigh) {
-      if (splashValue < 1.0 - splashInfo[3]) splashValue += splashInfo[3];
+      if (splashValue < 1.0 - splashInfo[3])
+        splashValue += splashInfo[3];
       else {
         resetToHigh = false;
         resetGame();
       }
     } else {
-      if (splashValue > splashInfo[3]*2) splashValue -= splashInfo[3];
+      if (splashValue > splashInfo[3] * 2)
+        splashValue -= splashInfo[3];
       else {
         splashValue = .0;
         if (splashReset) {
@@ -465,42 +476,66 @@ void prepareTextures([Event e]) {
   print("Textures chached!");
   textures.clear();
   // Prepare background (sky)
-  textures.putIfAbsent('backgroundDay', () => setBufferFromTexture(0, 0, 288, 512, "repeat-x", w+288, 512));
-  textures.putIfAbsent('backgroundNight', () => setBufferFromTexture(292, 0, 288, 512, "repeat-x", w+288, 512));
+  textures.putIfAbsent('backgroundDay',
+      () => setBufferFromTexture(0, 0, 288, 512, "repeat-x", w + 288, 512));
+  textures.putIfAbsent('backgroundNight',
+      () => setBufferFromTexture(292, 0, 288, 512, "repeat-x", w + 288, 512));
   // Prepare ground
-  textures.putIfAbsent('ground', () => setBufferFromTexture(584, 0, 336, 112, "repeat-x", w+336, 112));
+  textures.putIfAbsent('ground',
+      () => setBufferFromTexture(584, 0, 336, 112, "repeat-x", w + 336, 112));
   // Prepare birdYellow
-  textures.putIfAbsent('birdYellow0', () => setBufferFromTexture(6, 982, 34, 24));
-  textures.putIfAbsent('birdYellow1', () => setBufferFromTexture(62, 982, 34, 24));
-  textures.putIfAbsent('birdYellow2', () => setBufferFromTexture(118, 982, 34, 24));
+  textures.putIfAbsent(
+      'birdYellow0', () => setBufferFromTexture(6, 982, 34, 24));
+  textures.putIfAbsent(
+      'birdYellow1', () => setBufferFromTexture(62, 982, 34, 24));
+  textures.putIfAbsent(
+      'birdYellow2', () => setBufferFromTexture(118, 982, 34, 24));
   // Prepare birdYellow
-  textures.putIfAbsent('birdBlue0', () => setBufferFromTexture(174, 982, 34, 24));
-  textures.putIfAbsent('birdBlue1', () => setBufferFromTexture(230, 658, 34, 24));
-  textures.putIfAbsent('birdBlue2', () => setBufferFromTexture(230, 710, 34, 24));
+  textures.putIfAbsent(
+      'birdBlue0', () => setBufferFromTexture(174, 982, 34, 24));
+  textures.putIfAbsent(
+      'birdBlue1', () => setBufferFromTexture(230, 658, 34, 24));
+  textures.putIfAbsent(
+      'birdBlue2', () => setBufferFromTexture(230, 710, 34, 24));
   // Prepare birdRed
-  textures.putIfAbsent('birdRed0', () => setBufferFromTexture(230, 762, 34, 24));
-  textures.putIfAbsent('birdRed1', () => setBufferFromTexture(230, 814, 34, 24));
-  textures.putIfAbsent('birdRed2', () => setBufferFromTexture(230, 866, 34, 24));
+  textures.putIfAbsent(
+      'birdRed0', () => setBufferFromTexture(230, 762, 34, 24));
+  textures.putIfAbsent(
+      'birdRed1', () => setBufferFromTexture(230, 814, 34, 24));
+  textures.putIfAbsent(
+      'birdRed2', () => setBufferFromTexture(230, 866, 34, 24));
   // Prepare green pipe
-  textures.putIfAbsent('pipeGreenTop', () => setBufferFromTexture(112, 646, 52, 320));
-  textures.putIfAbsent('pipeGreenBottom', () => setBufferFromTexture(168, 646, 52, 320));
-  textures.putIfAbsent('pipeGreenFiller', () => setBufferFromTexture(112, 646, 52, 294, "repeat-y", 52, h));
+  textures.putIfAbsent(
+      'pipeGreenTop', () => setBufferFromTexture(112, 646, 52, 320));
+  textures.putIfAbsent(
+      'pipeGreenBottom', () => setBufferFromTexture(168, 646, 52, 320));
+  textures.putIfAbsent('pipeGreenFiller',
+      () => setBufferFromTexture(112, 646, 52, 294, "repeat-y", 52, h));
   // Prepare red pipe
-  textures.putIfAbsent('pipeRedTop', () => setBufferFromTexture(0, 646, 52, 320));
-  textures.putIfAbsent('pipeRedBottom', () => setBufferFromTexture(56, 646, 52, 320));
-  textures.putIfAbsent('pipeRedFiller', () => setBufferFromTexture(0, 646, 52, 294, "repeat-y", 52, h));
+  textures.putIfAbsent(
+      'pipeRedTop', () => setBufferFromTexture(0, 646, 52, 320));
+  textures.putIfAbsent(
+      'pipeRedBottom', () => setBufferFromTexture(56, 646, 52, 320));
+  textures.putIfAbsent('pipeRedFiller',
+      () => setBufferFromTexture(0, 646, 52, 294, "repeat-y", 52, h));
   respawnTextures();
 }
 
 void resizeTextures(int w, int h) {
-  textures['backgroundDay']= setBufferFromTexture(0, 0, 288, 512, "repeat-x", w, 512);
-  textures['backgroundNight'] = setBufferFromTexture(292, 0, 288, 512, "repeat-x", w, 512);
-  textures['ground'] = setBufferFromTexture(584, 0, 336, 112, "repeat-x", w+336, 112);
-  textures['pipeGreenFiller'] = setBufferFromTexture(112, 646, 52, 294, "repeat-y", 52, h);
-  textures['pipeRedFiller'] = setBufferFromTexture(0, 646, 52, 294, "repeat-y", 52, h);
+  textures['backgroundDay'] =
+      setBufferFromTexture(0, 0, 288, 512, "repeat-x", w, 512);
+  textures['backgroundNight'] =
+      setBufferFromTexture(292, 0, 288, 512, "repeat-x", w, 512);
+  textures['ground'] =
+      setBufferFromTexture(584, 0, 336, 112, "repeat-x", w + 336, 112);
+  textures['pipeGreenFiller'] =
+      setBufferFromTexture(112, 646, 52, 294, "repeat-y", 52, h);
+  textures['pipeRedFiller'] =
+      setBufferFromTexture(0, 646, 52, 294, "repeat-y", 52, h);
 }
 
-CanvasElement setBufferFromTexture(int x, int y, int width, int height, [String repeat, int rX, int rY]) {
+CanvasElement setBufferFromTexture(int x, int y, int width, int height,
+    [String repeat, int rX, int rY]) {
   CanvasElement buf = new CanvasElement();
   CanvasRenderingContext2D bufCtx = buf.getContext("2d");
   if (bufCtx == null)
@@ -512,12 +547,14 @@ CanvasElement setBufferFromTexture(int x, int y, int width, int height, [String 
     bufferCanv.width = width;
     bufferCanv.height = height;
     bufferCtx.clearRect(0, 0, width, height);
-    bufferCtx.drawImageScaledFromSource(img, x, y, width, height, 0, 0, width, height);
+    bufferCtx.drawImageScaledFromSource(
+        img, x, y, width, height, 0, 0, width, height);
     bufCtx.rect(0, 0, rX, rY);
     bufCtx.fillStyle = bufCtx.createPattern(bufferCanv, repeat);
     bufCtx.fill();
   } else {
-    bufCtx.drawImageScaledFromSource(img, x, y, width, height, 0, 0, width, height);
+    bufCtx.drawImageScaledFromSource(
+        img, x, y, width, height, 0, 0, width, height);
   }
   return buf;
 }
@@ -530,7 +567,7 @@ void resize([Event e]) {
   realCanv.height = h;
   canv.width = w;
   canv.height = h;
-  birdPosition = w*1/4;
+  birdPosition = w * 1 / 4;
   print("Render size: ${w}x$h");
   // Recreate textures with new size
   resizeTextures(w, h);
@@ -550,46 +587,47 @@ void clickBird(Event e) {
         stratGame();
     }
   } else if (e.type == "keypress") {
-      KeyboardEvent kbe = e;
-      switch (kbe.keyCode) {
-        // Space
-        case 32:
-          if (gameState & (STARTED | READY & ~LOOSE) == STARTED | READY & ~LOOSE) {
-            swipeBird();
-          } else {
-            if ((loose && currTime - pauseAfterLoose < timeAfterLoose) || resetToHigh)
-              return;
-            if (gameState & STARTED == STARTED)
-              resetWithSplash();
-            else
-              stratGame();
-          }
-          break;
-        // Esc
-        case 27:
-          //gameTogglePause();
-          break;
-        // 0
-        case 48:
-          changeGameLevel(0);
-          break;
-        // 1
-        case 49:
-          changeGameLevel(1);
-          break;
-        // 2
-        case 50:
-          changeGameLevel(2);
-          break;
-        // 3
-        case 51:
-          changeGameLevel(3);
-          break;
-        // 4
-        case 52:
-          changeGameLevel(4);
-          break;
-      }
+    KeyboardEvent kbe = e;
+    switch (kbe.keyCode) {
+      // Space
+      case 32:
+        if (gameState & (STARTED | READY & ~LOOSE) ==
+            STARTED | READY & ~LOOSE) {
+          swipeBird();
+        } else {
+          if ((loose && currTime - pauseAfterLoose < timeAfterLoose) ||
+              resetToHigh) return;
+          if (gameState & STARTED == STARTED)
+            resetWithSplash();
+          else
+            stratGame();
+        }
+        break;
+      // Esc
+      case 27:
+        //gameTogglePause();
+        break;
+      // 0
+      case 48:
+        changeGameLevel(0);
+        break;
+      // 1
+      case 49:
+        changeGameLevel(1);
+        break;
+      // 2
+      case 50:
+        changeGameLevel(2);
+        break;
+      // 3
+      case 51:
+        changeGameLevel(3);
+        break;
+      // 4
+      case 52:
+        changeGameLevel(4);
+        break;
+    }
   }
 }
 
@@ -608,7 +646,7 @@ void swipeBird() {
 void generatePipes([int count = 20]) {
   if (count < 1) throw new Exception("Invalid argument!");
   if (pipes != null) pipes.clear();
-  double max = h - h*groundHeight - pipeHeight - pipeGap;
+  double max = h - h * groundHeight - pipeHeight - pipeGap;
   for (int i = 0; i < count; ++i) {
     generateNewPipe(i, max);
   }
@@ -620,12 +658,12 @@ void generateNewPipe(int i, double max) {
   Map<String, dynamic> pipe = new Map<String, dynamic>();
   pipe.putIfAbsent('checked', () => false);
   if (i == 0) {
-    pipe.putIfAbsent('center', () => w/2 + i * (pipeDistance + pipeWidth));
+    pipe.putIfAbsent('center', () => w / 2 + i * (pipeDistance + pipeWidth));
     top = randMinMax(pipeGap, max);
   } else {
-    previewCenter = pipes.elementAt(i-1)['center'];
+    previewCenter = pipes.elementAt(i - 1)['center'];
     pipe.putIfAbsent('center', () => previewCenter + pipeWidth + pipeDistance);
-    previewTop = pipes.elementAt(i-1)['top'];
+    previewTop = pipes.elementAt(i - 1)['top'];
     topMin = (previewTop - pipeRange).toDouble();
     topMax = (previewTop + pipeRange).toDouble();
     // Sky
@@ -647,11 +685,12 @@ int randMinMax(int min, double max) {
 }
 
 double radians(num degrees) {
-    return degrees * PI / 180.0;
+  return degrees * pi / 180.0;
 }
 
 void respawnTextures() {
-  backgroundTexture = (randMinMax(0, 2.0) == 0) ? "backgroundDay" : "backgroundNight";
+  backgroundTexture =
+      (randMinMax(0, 2.0) == 0) ? "backgroundDay" : "backgroundNight";
   pipeTexture = (randMinMax(0, 2.0) == 0) ? "pipeGreen" : "pipeRed";
   switch (randMinMax(0, 3.0)) {
     case 0:
@@ -664,14 +703,15 @@ void respawnTextures() {
       birdTexture = "birdRed";
       break;
   }
-  ImageData iData = textures[backgroundTexture].getContext("2d").getImageData(0, 0, 1, 1);
+  CanvasRenderingContext2D ctx = textures[backgroundTexture].getContext("2d");
+  ImageData iData = ctx.getImageData(0, 0, 1, 1);
   backgroundColor = iData.data;
 }
 
 /* ### Game Handlers ###*/
 
 void resetGame() {
-  birdHeight = h*1/3;
+  birdHeight = h * 1 / 3;
   birdAnimAngle = .0;
   birdAngelBackwise = true;
   gameScore = 0;
@@ -705,8 +745,10 @@ void gameLoose() {
 }
 
 void gameTogglePause() {
-  if (gameState & STARTED == STARTED) unSetGameState(STARTED);
-  else setGameState(STARTED);
+  if (gameState & STARTED == STARTED)
+    unSetGameState(STARTED);
+  else
+    setGameState(STARTED);
 }
 
 void changeGameLevel(int lvl) {
@@ -714,7 +756,7 @@ void changeGameLevel(int lvl) {
     gameLevel = lvl;
     pipeRange = gameLevel * 50 + 1;
     levelChanged = true;
-    birdHeight = h*1/3;
+    birdHeight = h * 1 / 3;
     birdAnimAngle = .0;
     generatePipes();
   }
@@ -723,7 +765,7 @@ void changeGameLevel(int lvl) {
 void gameTouchStart(Event e) {
   e.preventDefault();
 //  if (!gameIsTouch)
-    swipeBird();
+  swipeBird();
   gameIsTouch = true;
 }
 

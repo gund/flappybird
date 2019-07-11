@@ -3,5 +3,7 @@ version: 2.3.1
 author: Alex Malkevich
 description: Web version of flappybird.
 homepage: http://preview.16mb.com/flappy_bird/
-dependencies:
-  browser: any
+dev_dependencies:
+  build_runner: ^1.6.1
+  build_test: ^0.10.8
+  build_web_compilers: ^2.1.2

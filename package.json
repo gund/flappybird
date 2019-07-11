@@ -4,7 +4,9 @@
   "description": "flappybird ==========",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "serve build/web"
+    "start": "serve build/web",
+    "serve": "webdev serve",
+    "build": "webdev build"
   },
   "repository": {
     "type": "git",
