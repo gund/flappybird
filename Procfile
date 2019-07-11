@@ -1,1 +1,1 @@
-web: npm run start
+web: /app/dart-sdk/bin/pub global run webdev serve --port $PORT
