@@ -1,1 +1,0 @@
-{"isEntrypoint":false,"deps":["flappybird|web/audio_loader.dart"],"parts":[],"conditionalDeps":[],"sdkDeps":["html","web_audio"],"hasMain":false}

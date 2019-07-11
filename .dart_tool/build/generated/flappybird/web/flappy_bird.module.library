@@ -1,1 +1,0 @@
-{"isEntrypoint":true,"deps":["flappybird|web/browser_detect.dart","flappybird|web/audio.dart"],"parts":[],"conditionalDeps":[],"sdkDeps":["html","math"],"hasMain":true}
