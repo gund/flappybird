@@ -1,1 +1,1 @@
-web: /app/dart-sdk/bin/pub global run webdev serve --port $PORT
+web: ./dart-sdk/bin/dart bin/main.dart
