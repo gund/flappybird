@@ -97,6 +97,13 @@ Set<Map<String, dynamic>> pipes = new Set<Map<String, dynamic>>();
 
 void main() {
   initAudio();
+  initUI();
+}
+
+void initUI() {
+  querySelector("#fullscreen").onClick.listen(goFullScreen);
+  querySelector("#mute").onClick.listen(toggleSound);
+  updateMuteBtn();
 }
 
 void initAudio() {
@@ -427,7 +434,6 @@ void drawSplash() {
 /* ### Helpers ### */
 
 void initRender() {
-  querySelector("#fullscreen").onClick.listen(goFullScreen);
   realCanv = querySelector("#render_area");
   realCtx = realCanv.getContext("2d");
   canv = new CanvasElement();
@@ -461,6 +467,15 @@ bool isDesktopBrowser() {
 
 void goFullScreen(Event e) {
   realCanv.requestFullscreen();
+}
+
+void toggleSound(Event e) {
+  audio.toggleMuted();
+  updateMuteBtn();
+}
+
+void updateMuteBtn() {
+  querySelector("#mute").innerText = audio.muted ? "Unmute" : "Mute";
 }
 
 void initTextures() {

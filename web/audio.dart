@@ -18,6 +18,7 @@ class Audio {
   AudioBufferSourceNode _source, _secondSource;
   AudioCallback _callback;
   int _loadCount = 0;
+  bool muted = false;
 
   Audio(this._callback) {
     try {
@@ -58,15 +59,33 @@ class Audio {
   }
 
   void play(String buffer, [String secondBuffer]) {
-    if (_buffers.keys.contains(buffer)) {
-      _source = _ctx.createBufferSource();
-      _source.buffer = _buffers[buffer];
-      _source.connectNode(_ctx.destination);
-      _source.start(0);
-      if (secondBuffer != null && _buffers.keys.contains(secondBuffer)) {
-        new Future.delayed(
-            new Duration(milliseconds: 400), () => play(secondBuffer));
-      }
+    if (muted || !_buffers.keys.contains(buffer)) {
+      return;
+    }
+
+    _source = _ctx.createBufferSource();
+    _source.buffer = _buffers[buffer];
+    _source.connectNode(_ctx.destination);
+    _source.start(0);
+    if (secondBuffer != null && _buffers.keys.contains(secondBuffer)) {
+      new Future.delayed(
+          new Duration(milliseconds: 400), () => play(secondBuffer));
+    }
+  }
+
+  void mute() {
+    muted = true;
+  }
+
+  void unmute() {
+    muted = false;
+  }
+
+  void toggleMuted() {
+    if (muted) {
+      unmute();
+    } else {
+      mute();
     }
   }
 }
