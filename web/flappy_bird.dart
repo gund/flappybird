@@ -6,6 +6,7 @@ import 'browser_detect.dart';
 import 'audio.dart';
 
 // Constants
+const double speedScale = 1;
 const double G = 0.012;
 const double G2 = G * 10;
 const double groundHeight = 1 / 5;
@@ -49,6 +50,8 @@ bool levelChanged = false;
 double lastPhisicTime = .0;
 double lastTime = .0;
 num currTime = .0;
+num timeDelta = .0;
+num timeMultiplier = .0;
 double garbageLastTime = .0;
 double backgroundAnim = .0;
 double groundAnim = .0;
@@ -96,9 +99,26 @@ void main() {
   initAudio();
 }
 
+void initAudio() {
+  audio = new Audio(audioLoaded);
+}
+
+void audioLoaded() {
+  initRender();
+  generatePipes();
+  animate(.0);
+}
+
+void animate(num time) {
+  tick(time);
+  window.requestAnimationFrame(animate);
+}
+
 void tick(num time) {
+  timeDelta = time - currTime;
+  timeMultiplier = (timeDelta / 16.666) * speedScale;
   currTime = time;
-  window.requestAnimationFrame(tick);
+
   phisicTick();
   redrawScene();
 }
@@ -133,9 +153,11 @@ void redrawScene() {
 void birdPhisic(double time) {
   double now = time;
   double delta = now - lastTime;
+  double maxSpeed = birdMaxSpeed * timeMultiplier;
+  delta *= timeMultiplier;
   if (delta > 450) delta *= 2;
   delta = delta * .5;
-  if (delta > birdMaxSpeed) delta = birdMaxSpeed;
+  if (delta > maxSpeed) delta = maxSpeed;
   if (isFall) {
     birdHeight = birdHeight + G * delta;
   } else {
@@ -199,7 +221,7 @@ void checkScoreAndCollision() {
 
 void movePipes() {
   for (int i = 0; i < pipes.length; ++i) {
-    pipes.elementAt(i)['center'] -= pipeSpeed;
+    pipes.elementAt(i)['center'] -= pipeSpeed * timeMultiplier;
   }
 }
 
@@ -227,9 +249,9 @@ void garbageRegenPipes(double time) {
 }
 
 void animBackground() {
-//  backgroundAnim += backgroundSpeed;
-  groundAnim += pipeSpeed;
-//  if (backgroundAnim >= 288.0) backgroundAnim = .0;
+  backgroundAnim -= backgroundSpeed * timeMultiplier;
+  groundAnim += pipeSpeed * timeMultiplier;
+  if (backgroundAnim <= -288.0) backgroundAnim = .0;
   if (groundAnim >= 336.0) groundAnim = .0;
 }
 
@@ -429,16 +451,6 @@ void initRender() {
 //    realCanv.onTouchEnd.listen(gameTouchEnd);
   }
   window.onResize.listen(resize);
-}
-
-void initAudio() {
-  audio = new Audio(audioLoaded);
-}
-
-void audioLoaded() {
-  initRender();
-  generatePipes();
-  tick(.0);
 }
 
 bool isDesktopBrowser() {
