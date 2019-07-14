@@ -24,6 +24,7 @@ const int garbagePipesCount = 10; // Garbage every 10 pipes
 const double garbageFreq = pipeSpeed * 275 * garbagePipesCount;
 const int timeAfterLoose = 500;
 const double backgroundSpeed = pipeSpeed / 2;
+const int fpsUpdateEvery = 1000; // 1s
 
 // Window
 int w, h;
@@ -37,6 +38,9 @@ CanvasRenderingContext2D bufferCtx;
 ImageElement img = new ImageElement(src: "img/atlas.png");
 Map<String, CanvasElement> textures = new Map<String, CanvasElement>();
 Audio audio;
+bool showFps = false;
+double lastFpsUpdate = 0;
+int fps = 0;
 // Game
 int gameLevel = 3;
 int pipeRange = gameLevel * 50 + 1;
@@ -92,8 +96,8 @@ int birdAnimState = 0;
 double birdAnimAngle = .0;
 bool birdAngelBackwise = true;
 // Pipes
-Map<String, dynamic> currPipe = new Map<String, dynamic>();
-Set<Map<String, dynamic>> pipes = new Set<Map<String, dynamic>>();
+Set<Map<String, dynamic>> pipes = Set<Map<String, dynamic>>();
+Map<String, dynamic> lastPipe;
 
 void main() {
   initAudio();
@@ -126,22 +130,22 @@ void tick(num time) {
   timeMultiplier = (timeDelta / 16.666) * speedScale;
   currTime = time;
 
-  phisicTick();
-  redrawScene();
+  phisicTick(timeDelta);
+  redrawScene(timeDelta);
 }
 
-void phisicTick() {
+void phisicTick(double delta) {
   if (gameState & (STARTED | READY & ~LOOSE) == STARTED | READY & ~LOOSE) {
     animBackground();
     animBird();
     birdPhisic(currTime);
     movePipes();
-    garbageRegenPipes(currTime);
+    recyclePipes(currTime);
     checkScoreAndCollision();
   }
 }
 
-void redrawScene() {
+void redrawScene(double delta) {
   ctx.clearRect(0, 0, w, h);
   drawBackground();
   renderPipes();
@@ -149,9 +153,20 @@ void redrawScene() {
   drawBird(birdPosition, birdHeight, birdR);
   drawScore();
   drawSplash();
+
   if (loose || gameState == 0) {
     drawPopup();
   }
+
+  if (showFps) {
+    if (lastFpsUpdate < currTime - fpsUpdateEvery) {
+      lastFpsUpdate = currTime;
+      fps = 1000 ~/ delta;
+    }
+
+    drawFps(fps);
+  }
+
   swapBuff();
 }
 
@@ -232,25 +247,18 @@ void movePipes() {
   }
 }
 
-void garbageRegenPipes(double time) {
+void recyclePipes(double time) {
   if (!loose && time - garbageLastTime > garbageFreq) {
-    int deletedPipesCount = 0;
+    int recycledPipes = 0;
+    double max = h - h * groundHeight - pipeHeight - pipeGap;
     // Delete pipes
     for (int i = 0; i < pipes.length; ++i) {
       if (pipes.elementAt(i)['center'] + pipeWidth < .0) {
-        pipes.remove(pipes.elementAt(i));
-        deletedPipesCount++;
-        --i;
+        recyclePipe(pipes.elementAt(i), max);
+        recycledPipes++;
       }
     }
-    double max = h - h * groundHeight - pipeHeight - pipeGap;
-    int i;
-    // Generate new pipes
-    for (i = 0; i < deletedPipesCount; ++i) {
-      generateNewPipe(pipes.length, max);
-    }
-    print("Deleted pipes: $deletedPipesCount");
-    print("Generated pipes: $i");
+    print("Recycled pipes: $recycledPipes");
     garbageLastTime = time;
   }
 }
@@ -359,7 +367,6 @@ void renderPipes() {
         pipes.elementAt(i)['center'] - pipeWidth < w)
       drawPipe(pipes.elementAt(i)['center'], pipes.elementAt(i)['top'],
           pipeHeight, pipeWidth);
-    if (pipes.elementAt(i)['center'] - pipeWidth > w) break;
   }
 }
 
@@ -632,7 +639,7 @@ void clickBird(Event e) {
         break;
       // Esc
       case 27:
-        //gameTogglePause();
+        gameTogglePause();
         break;
       // 0
       case 48:
@@ -654,6 +661,10 @@ void clickBird(Event e) {
       case 52:
         changeGameLevel(4);
         break;
+      // F
+      case 102:
+        showFps = !showFps;
+        break;
     }
   }
 }
@@ -673,24 +684,47 @@ void swipeBird() {
 void generatePipes([int count = 20]) {
   if (count < 1) throw new Exception("Invalid argument!");
   if (pipes != null) pipes.clear();
-  double max = h - h * groundHeight - pipeHeight - pipeGap;
+  double max = getPipeMax();
   for (int i = 0; i < count; ++i) {
-    generateNewPipe(i, max);
+    lastPipe = generateNewPipe(max);
   }
 }
 
-void generateNewPipe(int i, double max) {
+void regeneratePipes() {
+  lastPipe = null;
+  double max = getPipeMax();
+  for (var pipe in pipes) {
+    recyclePipe(pipe, max);
+  }
+}
+
+void recyclePipe(Map<String, dynamic> pipe, double max) {
+  lastPipe = generateNewPipe(max, pipe);
+}
+
+num getPipeMax() {
+  return h - h * groundHeight - pipeHeight - pipeGap;
+}
+
+Map<String, dynamic> generateNewPipe(double max, [Map<String, dynamic> pipe]) {
   int top, previewTop;
   double previewCenter, topMin, topMax;
-  Map<String, dynamic> pipe = new Map<String, dynamic>();
-  pipe.putIfAbsent('checked', () => false);
-  if (i == 0) {
-    pipe.putIfAbsent('center', () => w / 2 + i * (pipeDistance + pipeWidth));
+  var pipeRecycled = pipe != null;
+
+  if (!pipeRecycled) {
+    pipe = new Map<String, dynamic>();
+    pipe.putIfAbsent('checked', () => false);
+    pipe.putIfAbsent('center', () => 0);
+    pipe.putIfAbsent('top', () => 0);
+  }
+
+  if (lastPipe == null) {
+    pipe['center'] = w / 2;
     top = randMinMax(pipeGap, max);
   } else {
-    previewCenter = pipes.elementAt(i - 1)['center'];
-    pipe.putIfAbsent('center', () => previewCenter + pipeWidth + pipeDistance);
-    previewTop = pipes.elementAt(i - 1)['top'];
+    previewCenter = lastPipe['center'];
+    pipe['center'] = previewCenter + pipeWidth + pipeDistance;
+    previewTop = lastPipe['top'];
     topMin = (previewTop - pipeRange).toDouble();
     topMax = (previewTop + pipeRange).toDouble();
     // Sky
@@ -703,8 +737,13 @@ void generateNewPipe(int i, double max) {
     }
     top = randMinMax(topMin.toInt(), topMax);
   }
-  pipe.putIfAbsent('top', () => top);
-  pipes.add(pipe);
+  pipe['top'] = top;
+
+  if (!pipeRecycled) {
+    pipes.add(pipe);
+  }
+
+  return pipe;
 }
 
 int randMinMax(int min, double max) {
@@ -746,7 +785,7 @@ void resetGame() {
   garbageLastTime = currTime;
   loose = false;
   if (!levelChanged) {
-    generatePipes();
+    regeneratePipes();
   }
   respawnTextures();
   levelChanged = false;
@@ -785,7 +824,7 @@ void changeGameLevel(int lvl) {
     levelChanged = true;
     birdHeight = h * 1 / 3;
     birdAnimAngle = .0;
-    generatePipes();
+    regeneratePipes();
   }
 }
 
